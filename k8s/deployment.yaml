@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: lab-app
-          image: <+artifact.image>
+          image: <+artifacts.primary.image>
           ports:
             - containerPort: 8080
 ---
