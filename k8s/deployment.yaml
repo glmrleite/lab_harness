@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: lab-app
-          image: gilmarsilva1/lab-app:dev
+          image: "gilmarsilva1/lab-app:dev"
           ports:
             - containerPort: 8080
 ---
@@ -25,7 +25,8 @@ metadata:
 spec:
   selector:
     app: lab-app
+  type: NodePort
   ports:
     - port: 80
       targetPort: 8080
-  type: ClusterIP
+      nodePort: 30080
