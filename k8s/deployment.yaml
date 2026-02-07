@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: lab-app
-          image: image: gilmarsilva1/lab-app:dev
+          image: gilmarsilva1/lab-app:dev
           ports:
             - containerPort: 8080
 ---
