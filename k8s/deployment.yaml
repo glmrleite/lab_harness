@@ -2,8 +2,16 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: lab-app
+  labels:
+    app: lab-app
 spec:
   replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: lab-app
@@ -12,21 +20,79 @@ spec:
       labels:
         app: lab-app
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: lab-app
           image: "gilmarsilva1/lab-app:dev"
+          imagePullPolicy: Always
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
+
+          env:
+            - name: APP_NAME
+              value: "lab-app"
+            - name: APP_ENV
+              value: "dev"
+            - name: APP_VERSION
+              value: "0.1.0"
+            - name: GIT_SHA
+              value: "manual"
+            - name: FEATURE_FLAG_FUN
+              value: "true"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: PORT
+              value: "8080"
+
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 6
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: lab-app
+  labels:
+    app: lab-app
 spec:
   selector:
     app: lab-app
   type: NodePort
   ports:
-    - port: 80
+    - name: http
+      port: 80
       targetPort: 8080
       nodePort: 30080
